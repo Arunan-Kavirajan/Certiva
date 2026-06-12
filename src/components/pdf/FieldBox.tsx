@@ -13,9 +13,9 @@ const SAMPLE_TEXT: { [key: string]: string } = {
 
 const FIELD_COLORS: { [key: string]: ColorSet } = {
   Name: {
-    border: "rgba(99, 102, 241, 0.7)",
-    bg: "rgba(99, 102, 241, 0.08)",
-    text: "rgba(99, 102, 241, 0.9)",
+    border: "rgba(124, 140, 78, 0.8)",
+    bg: "rgba(124, 140, 78, 0.08)",
+    text: "rgba(124, 140, 78, 0.9)",
   },
 };
 
@@ -29,6 +29,7 @@ const FONT_FAMILY = "sans-serif";
 const HORIZONTAL_PADDING = 16;
 const MIN_WIDTH = 80;
 const MIN_HEIGHT = 30;
+const BASELINE_PADDING = 10;
 
 function computeFittedFontSize(
   text: string,
@@ -46,22 +47,25 @@ function computeFittedFontSize(
   return minFontSize;
 }
 
-type HandleType = "tl" | "tc" | "tr" | "ml" | "mr" | "bl" | "bc" | "br";
+type HandleType = "tl" | "tr" | "bl" | "br";
 
 interface FieldBoxProps {
   position: FieldPosition;
   isDrawPreview?: boolean;
   onUpdate?: (updated: FieldPosition) => void;
+  onDelete?: () => void;
 }
 
 export default function FieldBox({
   position,
   isDrawPreview = false,
   onUpdate,
+  onDelete,
 }: FieldBoxProps) {
   const { field, x, y, width, height, align, fontSize, minFontSize } = position;
 
-  const liveRef = useRef<HTMLDivElement>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
 
   const text = SAMPLE_TEXT[field] ?? field;
   const colors: ColorSet = FIELD_COLORS[field] ?? DEFAULT_COLORS;
@@ -73,6 +77,7 @@ export default function FieldBox({
   );
 
   const textAlign = align as React.CSSProperties["textAlign"];
+  const textTop = height - BASELINE_PADDING - fittedSize;
 
   const startMove = (e: React.MouseEvent) => {
     if (isDrawPreview) return;
@@ -87,9 +92,9 @@ export default function FieldBox({
     const onMouseMove = (ev: MouseEvent) => {
       latestX = x + (ev.clientX - startMX);
       latestY = y + (ev.clientY - startMY);
-      if (liveRef.current) {
-        liveRef.current.style.left = `${latestX - width / 2}px`;
-        liveRef.current.style.top = `${latestY - height / 2}px`;
+      if (boxRef.current) {
+        boxRef.current.style.left = `${latestX - width / 2}px`;
+        boxRef.current.style.top = `${latestY - height / 2}px`;
       }
     };
 
@@ -126,10 +131,10 @@ export default function FieldBox({
       let newRight = initRight;
       let newBottom = initBottom;
 
-      if (handle === "tl" || handle === "ml" || handle === "bl") newLeft = initLeft + dx;
-      if (handle === "tr" || handle === "mr" || handle === "br") newRight = initRight + dx;
-      if (handle === "tl" || handle === "tc" || handle === "tr") newTop = initTop + dy;
-      if (handle === "bl" || handle === "bc" || handle === "br") newBottom = initBottom + dy;
+      if (handle === "tl" || handle === "bl") newLeft = initLeft + dx;
+      if (handle === "tr" || handle === "br") newRight = initRight + dx;
+      if (handle === "tl" || handle === "tr") newTop = initTop + dy;
+      if (handle === "bl" || handle === "br") newBottom = initBottom + dy;
 
       if (newRight - newLeft < MIN_WIDTH) {
         if (handle.includes("l")) newLeft = newRight - MIN_WIDTH;
@@ -147,11 +152,16 @@ export default function FieldBox({
 
       latestPos = { ...position, x: newCX, y: newCY, width: newW, height: newH };
 
-      if (liveRef.current) {
-        liveRef.current.style.left = `${newLeft}px`;
-        liveRef.current.style.top = `${newTop}px`;
-        liveRef.current.style.width = `${newW}px`;
-        liveRef.current.style.height = `${newH}px`;
+      if (boxRef.current) {
+        boxRef.current.style.left = `${newLeft}px`;
+        boxRef.current.style.top = `${newTop}px`;
+        boxRef.current.style.width = `${newW}px`;
+        boxRef.current.style.height = `${newH}px`;
+      }
+
+      // Update text position directly so it stays pinned to bottom during resize
+      if (textRef.current) {
+        textRef.current.style.top = `${newH - BASELINE_PADDING - fittedSize}px`;
       }
     };
 
@@ -178,8 +188,8 @@ export default function FieldBox({
       onMouseDown={(e) => startResize(e, handle)}
       style={{
         position: "absolute",
-        width: 9,
-        height: 9,
+        width: 10,
+        height: 10,
         backgroundColor: "white",
         border: `2px solid ${colors.border}`,
         borderRadius: "50%",
@@ -193,7 +203,7 @@ export default function FieldBox({
 
   return (
     <div
-      ref={liveRef}
+      ref={boxRef}
       onMouseDown={isInteractive ? startMove : undefined}
       style={{
         position: "absolute",
@@ -204,10 +214,6 @@ export default function FieldBox({
         border: `2px dashed ${colors.border}`,
         backgroundColor: colors.bg,
         borderRadius: 6,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: `0 ${HORIZONTAL_PADDING}px`,
         boxSizing: "border-box",
         pointerEvents: isInteractive ? "auto" : "none",
         overflow: "visible",
@@ -216,10 +222,11 @@ export default function FieldBox({
         userSelect: "none",
       }}
     >
+      {/* Field label */}
       <span
         style={{
           position: "absolute",
-          top: -18,
+          top: -20,
           left: 0,
           fontSize: 11,
           fontWeight: 600,
@@ -236,8 +243,46 @@ export default function FieldBox({
         {field}
       </span>
 
+      {/* Delete button */}
+      {isInteractive && onDelete && (
+        <button
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          style={{
+            position: "absolute",
+            top: -28,
+            right: -2,
+            width: 20,
+            height: 20,
+            borderRadius: "50%",
+            backgroundColor: "#E05A4A",
+            border: "none",
+            color: "white",
+            fontSize: 13,
+            cursor: "pointer",
+            pointerEvents: "auto",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 20,
+          }}
+          title="Remove field"
+        >
+          ×
+        </button>
+      )}
+
+      {/* Sample text pinned to bottom */}
       <span
+        ref={textRef}
         style={{
+          position: "absolute",
+          top: textTop,
+          left: HORIZONTAL_PADDING,
+          right: HORIZONTAL_PADDING,
           fontSize: fittedSize,
           fontFamily: FONT_FAMILY,
           color: colors.text,
@@ -245,7 +290,6 @@ export default function FieldBox({
           overflow: "hidden",
           textOverflow: "ellipsis",
           textAlign,
-          width: "100%",
           lineHeight: 1,
           pointerEvents: "none",
         }}
@@ -253,15 +297,12 @@ export default function FieldBox({
         {text}
       </span>
 
+      {/* 4 corner resize handles only */}
       {isInteractive && (
         <>
           <Handle handle="tl" style={{ top: -5, left: -5, cursor: "nwse-resize" }} />
-          <Handle handle="tc" style={{ top: -5, left: "calc(50% - 4px)", cursor: "ns-resize" }} />
           <Handle handle="tr" style={{ top: -5, right: -5, cursor: "nesw-resize" }} />
-          <Handle handle="ml" style={{ top: "calc(50% - 4px)", left: -5, cursor: "ew-resize" }} />
-          <Handle handle="mr" style={{ top: "calc(50% - 4px)", right: -5, cursor: "ew-resize" }} />
           <Handle handle="bl" style={{ bottom: -5, left: -5, cursor: "nesw-resize" }} />
-          <Handle handle="bc" style={{ bottom: -5, left: "calc(50% - 4px)", cursor: "ns-resize" }} />
           <Handle handle="br" style={{ bottom: -5, right: -5, cursor: "nwse-resize" }} />
         </>
       )}

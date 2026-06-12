@@ -2,6 +2,7 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import type { FieldPosition } from "../types/certificate";
 
 const RENDER_WIDTH = 800;
+const BASELINE_PADDING = 10;
 
 export async function generateCertificate(
   pdfFile: File,
@@ -26,7 +27,6 @@ export async function generateCertificate(
   const pdfY = pdfHeight - (canvasY + nameField.height) * scaleY;
 
   const boxWidth = nameField.width * scaleX;
-  const boxHeight = nameField.height * scaleY;
 
   const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
@@ -40,10 +40,9 @@ export async function generateCertificate(
   }
 
   const textWidth = font.widthOfTextAtSize(name, finalFontSize);
-  const textHeight = font.heightAtSize(finalFontSize);
 
   const textX = pdfX + (boxWidth - textWidth) / 2;
-  const textY = pdfY + (boxHeight - textHeight) / 2;
+  const textY = pdfY + BASELINE_PADDING * scaleY;
 
   page.drawText(name, {
     x: textX,

@@ -133,6 +133,7 @@ export default function TemplateEditorPage() {
           selectedField="Name"
           fieldPositions={fieldPositions}
           onFieldChange={handleFieldChange}
+          onFieldDelete={() => setFieldPositions([])}
         />
       </div>
 
@@ -175,7 +176,6 @@ export default function TemplateEditorPage() {
         </div>
       )}
 
-      {/* Action Buttons */}
       <div className="mt-6 flex items-center gap-3">
         <button
           onClick={handlePreview}

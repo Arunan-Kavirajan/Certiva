@@ -28,6 +28,7 @@ interface PdfViewerProps {
   selectedField: string;
   fieldPositions: FieldPosition[];
   onFieldChange: (position: FieldPosition) => void;
+  onFieldDelete: () => void;
 }
 
 export default function PdfViewer({
@@ -35,9 +36,13 @@ export default function PdfViewer({
   selectedField,
   fieldPositions,
   onFieldChange,
+  onFieldDelete,
 }: PdfViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [drawState, setDrawState] = useState<DrawState | null>(null);
+
+  // Only allow drawing if there's no existing box placed yet
+  const hasExistingBox = fieldPositions.length > 0;
 
   const getRelativePos = useCallback((e: MouseEvent) => {
     if (!containerRef.current) return { x: 0, y: 0 };
@@ -104,12 +109,15 @@ export default function PdfViewer({
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
+      // Don't start drawing if a box already exists
+      if (hasExistingBox) return;
+
       const rect = e.currentTarget.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
       setDrawState({ startX: x, startY: y, currentX: x, currentY: y });
     },
-    []
+    [hasExistingBox]
   );
 
   const drawPreview: FieldPosition | null = drawState
@@ -140,8 +148,12 @@ export default function PdfViewer({
       <div
         ref={containerRef}
         onMouseDown={handleMouseDown}
-        className="inline-block cursor-crosshair"
-        style={{ position: "relative", userSelect: "none" }}
+        className="inline-block"
+        style={{
+          position: "relative",
+          userSelect: "none",
+          cursor: hasExistingBox ? "default" : "crosshair",
+        }}
       >
         <Page pageNumber={1} width={800} />
 
@@ -150,6 +162,7 @@ export default function PdfViewer({
             key={pos.field}
             position={pos}
             onUpdate={onFieldChange}
+            onDelete={onFieldDelete}
           />
         ))}
 
