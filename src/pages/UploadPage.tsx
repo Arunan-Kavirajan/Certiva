@@ -2,13 +2,11 @@ import { useNavigate } from "react-router-dom";
 import { useCertificate } from "../context/CertificateContext";
 import PdfUploader from "../components/upload/PdfUploader";
 import SpreadsheetUploader from "../components/upload/SpreadsheetUploader";
-
-const STEPS = ["Upload", "Edit", "Generate", "Download"];
+import Navbar from "../components/shared/Navbar";
 
 export default function UploadPage() {
   const navigate = useNavigate();
   const { pdfFile, setPdfFile, sheetFile, setSheetFile } = useCertificate();
-
   const canContinue = !!pdfFile && !!sheetFile;
 
   return (
@@ -17,74 +15,35 @@ export default function UploadPage() {
       backgroundColor: "#F7F4EE",
       display: "flex",
       flexDirection: "column",
+      position: "relative",
+      overflow: "hidden",
     }}>
+      <Navbar activeStep={0} />
 
-      {/* Navbar */}
-      <nav style={{
-        backgroundColor: "#FFFFFF",
-        borderBottom: "1px solid #DDD5C4",
-        padding: "0 40px",
-        height: 60,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-      }}>
-        <span style={{
-          fontSize: 20,
-          fontWeight: 700,
-          color: "#2C1F0E",
-          letterSpacing: "-0.3px",
-        }}>
-          Certiva
-        </span>
+      {/* Background wave decorations */}
+      <svg
+        style={{ position: "absolute", top: 60, left: 0, pointerEvents: "none", opacity: 0.4 }}
+        width="400" height="400" viewBox="0 0 400 400" fill="none"
+      >
+        <path d="M-50 200 Q50 100 150 200 Q250 300 350 200 Q450 100 550 200"
+          stroke="#7C8C4E" strokeWidth="1.5" fill="none" opacity="0.4" />
+        <path d="M-50 240 Q50 140 150 240 Q250 340 350 240 Q450 140 550 240"
+          stroke="#7C8C4E" strokeWidth="1" fill="none" opacity="0.3" />
+        <path d="M-50 280 Q50 180 150 280 Q250 380 350 280 Q450 180 550 280"
+          stroke="#9C8670" strokeWidth="1" fill="none" opacity="0.2" />
+      </svg>
 
-        {/* Step indicator */}
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          {STEPS.map((step, i) => {
-            const isActive = i === 0;
-            const isComplete = false;
-            return (
-              <div key={step} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <div style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "4px 10px",
-                  borderRadius: 20,
-                  backgroundColor: isActive ? "#E8EDD6" : "transparent",
-                }}>
-                  <div style={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: "50%",
-                    backgroundColor: isActive ? "#7C8C4E" : isComplete ? "#7C8C4E" : "#DDD5C4",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: isActive || isComplete ? "white" : "#9C8670",
-                  }}>
-                    {isComplete ? "✓" : i + 1}
-                  </div>
-                  <span style={{
-                    fontSize: 13,
-                    fontWeight: isActive ? 600 : 400,
-                    color: isActive ? "#2C1F0E" : "#9C8670",
-                  }}>
-                    {step}
-                  </span>
-                </div>
-                {i < STEPS.length - 1 && (
-                  <div style={{ width: 20, height: 1, backgroundColor: "#DDD5C4" }} />
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        <div style={{ width: 80 }} />
-      </nav>
+      <svg
+        style={{ position: "absolute", bottom: 0, right: 0, pointerEvents: "none", opacity: 0.4 }}
+        width="400" height="400" viewBox="0 0 400 400" fill="none"
+      >
+        <path d="M550 200 Q450 100 350 200 Q250 300 150 200 Q50 100 -50 200"
+          stroke="#7C8C4E" strokeWidth="1.5" fill="none" opacity="0.4" />
+        <path d="M550 240 Q450 140 350 240 Q250 340 150 240 Q50 140 -50 240"
+          stroke="#7C8C4E" strokeWidth="1" fill="none" opacity="0.3" />
+        <path d="M550 160 Q450 60 350 160 Q250 260 150 160 Q50 60 -50 160"
+          stroke="#9C8670" strokeWidth="1" fill="none" opacity="0.2" />
+      </svg>
 
       {/* Main content */}
       <div style={{
@@ -94,27 +53,35 @@ export default function UploadPage() {
         alignItems: "center",
         justifyContent: "center",
         padding: 40,
+        position: "relative",
+        zIndex: 1,
       }}>
-
-        {/* Hero text */}
         <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <div style={{
+            display: "inline-block",
+            backgroundColor: "#E8EDD6",
+            borderRadius: 20,
+            padding: "6px 14px",
+            marginBottom: 16,
+          }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "#7C8C4E", letterSpacing: "0.06em" }}>
+              CERTIFICATE AUTOMATION
+            </span>
+          </div>
           <h1 style={{
-            fontSize: 40,
+            fontSize: 42,
             fontWeight: 700,
             color: "#2C1F0E",
             margin: 0,
-            marginBottom: 12,
-            letterSpacing: "-0.5px",
+            marginBottom: 14,
+            letterSpacing: "-0.8px",
+            lineHeight: 1.15,
           }}>
             Generate certificates,
             <br />
             <span style={{ color: "#7C8C4E" }}>in seconds.</span>
           </h1>
-          <p style={{
-            fontSize: 16,
-            color: "#9C8670",
-            margin: 0,
-          }}>
+          <p style={{ fontSize: 16, color: "#9C8670", margin: 0, lineHeight: 1.6 }}>
             Upload your template and participant list to get started.
           </p>
         </div>
@@ -122,11 +89,11 @@ export default function UploadPage() {
         {/* Upload card */}
         <div style={{
           backgroundColor: "#FFFFFF",
-          borderRadius: 20,
-          padding: 32,
+          borderRadius: 24,
+          padding: 36,
           width: "100%",
-          maxWidth: 480,
-          boxShadow: "0 2px 12px rgba(44, 31, 14, 0.08)",
+          maxWidth: 500,
+          boxShadow: "0 4px 24px rgba(44, 31, 14, 0.08), 0 1px 4px rgba(44, 31, 14, 0.04)",
           border: "1px solid #EFE9DA",
         }}>
           <h2 style={{
@@ -144,7 +111,6 @@ export default function UploadPage() {
             <SpreadsheetUploader file={sheetFile} onFileSelect={setSheetFile} />
           </div>
 
-          {/* Continue button */}
           <button
             onClick={() => canContinue && navigate("/editor")}
             disabled={!canContinue}
