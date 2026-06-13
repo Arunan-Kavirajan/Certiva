@@ -7,6 +7,7 @@ import "react-pdf/dist/Page/TextLayer.css";
 import type { FieldPosition } from "../../types/certificate";
 import FieldBox from "./FieldBox";
 
+// Move worker setup outside component — only runs once
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
   import.meta.url
@@ -14,7 +15,17 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 
 const MIN_DRAW_SIZE = 10;
 const DEFAULT_WIDTH = 400;
-const DEFAULT_HEIGHT = 60;
+const DEFAULT_HEIGHT = 80;
+
+// Cache the file URL so react-pdf doesn't re-parse on every render
+const fileCache = new WeakMap<File, { url: string }>();
+
+function getFileUrl(file: File): string {
+  if (!fileCache.has(file)) {
+    fileCache.set(file, { url: URL.createObjectURL(file) });
+  }
+  return fileCache.get(file)!.url;
+}
 
 interface DrawState {
   startX: number;
@@ -40,9 +51,10 @@ export default function PdfViewer({
 }: PdfViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [drawState, setDrawState] = useState<DrawState | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  // Only allow drawing if there's no existing box placed yet
   const hasExistingBox = fieldPositions.length > 0;
+  const fileUrl = getFileUrl(file);
 
   const getRelativePos = useCallback((e: MouseEvent) => {
     if (!containerRef.current) return { x: 0, y: 0 };
@@ -93,6 +105,7 @@ export default function PdfViewer({
         align: "center",
         fontSize: 32,
         minFontSize: 16,
+        fontFamily: "Helvetica-Bold",
       });
 
       setDrawState(null);
@@ -109,9 +122,7 @@ export default function PdfViewer({
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      // Don't start drawing if a box already exists
       if (hasExistingBox) return;
-
       const rect = e.currentTarget.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
@@ -135,27 +146,59 @@ export default function PdfViewer({
           align: "center" as const,
           fontSize: 32,
           minFontSize: 16,
+          fontFamily: "Helvetica-Bold" as const,
         };
       })()
     : null;
 
   return (
     <Document
-      file={file}
-      onLoadSuccess={() => console.log("PDF loaded")}
+      file={fileUrl}
+      onLoadSuccess={() => setIsLoaded(true)}
       onLoadError={(error) => console.error("PDF error:", error)}
+      loading={
+        <div style={{
+          width: 800,
+          height: 566,
+          backgroundColor: "#F7F4EE",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{
+              width: 36,
+              height: 36,
+              border: "3px solid #E8EDD6",
+              borderTop: "3px solid #7C8C4E",
+              borderRadius: "50%",
+              animation: "spin 0.8s linear infinite",
+              margin: "0 auto 12px",
+            }} />
+            <p style={{ fontSize: 13, color: "#9C8670", margin: 0 }}>
+              Loading certificate...
+            </p>
+          </div>
+        </div>
+      }
     >
       <div
         ref={containerRef}
         onMouseDown={handleMouseDown}
-        className="inline-block"
         style={{
           position: "relative",
           userSelect: "none",
           cursor: hasExistingBox ? "default" : "crosshair",
+          opacity: isLoaded ? 1 : 0,
+          transition: "opacity 0.2s ease",
         }}
       >
-        <Page pageNumber={1} width={800} />
+        <Page
+          pageNumber={1}
+          width={800}
+          renderTextLayer={false}
+          renderAnnotationLayer={false}
+        />
 
         {fieldPositions.map((pos) => (
           <FieldBox

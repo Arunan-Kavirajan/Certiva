@@ -7,6 +7,7 @@ export interface FieldPosition {
   align: "center" | "left" | "right";
   fontSize: number;
   minFontSize: number;
+  fontFamily: "Helvetica" | "Helvetica-Bold" | "Times-Roman" | "Courier";
 }
 
 export type SheetRow = { [key: string]: string };

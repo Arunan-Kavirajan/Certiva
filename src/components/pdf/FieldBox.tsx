@@ -1,14 +1,10 @@
-import { useMemo, useRef } from "react";
+import { useRef, useEffect } from "react";
 import type { FieldPosition } from "../../types/certificate";
 
 type ColorSet = {
   border: string;
   bg: string;
   text: string;
-};
-
-const SAMPLE_TEXT: { [key: string]: string } = {
-  Name: "John Doe",
 };
 
 const FIELD_COLORS: { [key: string]: ColorSet } = {
@@ -25,27 +21,25 @@ const DEFAULT_COLORS: ColorSet = {
   text: "rgba(107, 114, 128, 0.9)",
 };
 
-const FONT_FAMILY = "sans-serif";
 const HORIZONTAL_PADDING = 16;
 const MIN_WIDTH = 80;
 const MIN_HEIGHT = 30;
 const BASELINE_PADDING = 10;
 
-function computeFittedFontSize(
-  text: string,
-  maxWidth: number,
-  maxFontSize: number,
-  minFontSize: number
-): number {
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return minFontSize;
-  for (let size = maxFontSize; size >= minFontSize; size--) {
-    ctx.font = `${size}px ${FONT_FAMILY}`;
-    if (ctx.measureText(text).width <= maxWidth) return size;
-  }
-  return minFontSize;
-}
+// Map our fontFamily values to CSS-compatible font names
+const FONT_CSS_MAP: { [key: string]: string } = {
+  "Helvetica": "Helvetica, Arial, sans-serif",
+  "Helvetica-Bold": "Helvetica, Arial, sans-serif",
+  "Times-Roman": "Times New Roman, Times, serif",
+  "Courier": "Courier New, Courier, monospace",
+};
+
+const FONT_WEIGHT_MAP: { [key: string]: string } = {
+  "Helvetica": "400",
+  "Helvetica-Bold": "700",
+  "Times-Roman": "400",
+  "Courier": "400",
+};
 
 type HandleType = "tl" | "tr" | "bl" | "br";
 
@@ -62,22 +56,65 @@ export default function FieldBox({
   onUpdate,
   onDelete,
 }: FieldBoxProps) {
-  const { field, x, y, width, height, align, fontSize, minFontSize } = position;
+  const { field, x, y, width, height, align, fontSize, minFontSize, fontFamily } = position;
 
   const boxRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<HTMLSpanElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const text = SAMPLE_TEXT[field] ?? field;
   const colors: ColorSet = FIELD_COLORS[field] ?? DEFAULT_COLORS;
-  const availableWidth = width - HORIZONTAL_PADDING * 2;
+  const isInteractive = !isDrawPreview;
 
-  const fittedSize = useMemo(
-    () => computeFittedFontSize(text, availableWidth, fontSize, minFontSize),
-    [text, availableWidth, fontSize, minFontSize]
-  );
+  // Get the actual first name from the sheet, fall back to "John Doe"
+  const previewText = "John Doe";
 
-  const textAlign = align as React.CSSProperties["textAlign"];
-  const textTop = height - BASELINE_PADDING - fittedSize;
+  const cssFont = FONT_CSS_MAP[fontFamily] ?? "Helvetica, Arial, sans-serif";
+  const cssFontWeight = FONT_WEIGHT_MAP[fontFamily] ?? "400";
+
+  // Draw text on canvas pinned to the bottom baseline
+  const drawCanvas = (w: number, h: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    canvas.width = w;
+    canvas.height = h;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, w, h);
+
+    const availableWidth = w - HORIZONTAL_PADDING * 2;
+
+    // Find the fitting font size
+    let fitSize = fontSize;
+    while (fitSize >= minFontSize) {
+      ctx.font = `${cssFontWeight} ${fitSize}px ${cssFont}`;
+      if (ctx.measureText(previewText).width <= availableWidth) break;
+      fitSize--;
+    }
+
+    ctx.font = `${cssFontWeight} ${fitSize}px ${cssFont}`;
+    ctx.fillStyle = colors.text;
+    ctx.textBaseline = "alphabetic";
+
+    // Pin text baseline to bottom of canvas minus padding
+    const textY = h - BASELINE_PADDING;
+
+    const textWidth = ctx.measureText(previewText).width;
+    let textX = HORIZONTAL_PADDING;
+    if (align === "center") {
+      textX = (w - textWidth) / 2;
+    } else if (align === "right") {
+      textX = w - HORIZONTAL_PADDING - textWidth;
+    }
+
+    ctx.fillText(previewText, textX, textY);
+  };
+
+  // Redraw whenever any formatting or size changes
+  useEffect(() => {
+    drawCanvas(width, height);
+  }, [width, height, fontSize, minFontSize, fontFamily, align, previewText]);
 
   const startMove = (e: React.MouseEvent) => {
     if (isDrawPreview) return;
@@ -159,10 +196,8 @@ export default function FieldBox({
         boxRef.current.style.height = `${newH}px`;
       }
 
-      // Update text position directly so it stays pinned to bottom during resize
-      if (textRef.current) {
-        textRef.current.style.top = `${newH - BASELINE_PADDING - fittedSize}px`;
-      }
+      // Redraw canvas at new size
+      drawCanvas(newW, newH);
     };
 
     const onMouseUp = () => {
@@ -174,8 +209,6 @@ export default function FieldBox({
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mouseup", onMouseUp);
   };
-
-  const isInteractive = !isDrawPreview;
 
   const Handle = ({
     style,
@@ -275,29 +308,21 @@ export default function FieldBox({
         </button>
       )}
 
-      {/* Sample text pinned to bottom */}
-      <span
-        ref={textRef}
+      {/* Canvas for preview text — pinned exactly to bottom */}
+      <canvas
+        ref={canvasRef}
         style={{
           position: "absolute",
-          top: textTop,
-          left: HORIZONTAL_PADDING,
-          right: HORIZONTAL_PADDING,
-          fontSize: fittedSize,
-          fontFamily: FONT_FAMILY,
-          color: colors.text,
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          textAlign,
-          lineHeight: 1,
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
           pointerEvents: "none",
+          borderRadius: 6,
         }}
-      >
-        {text}
-      </span>
+      />
 
-      {/* 4 corner resize handles only */}
+      {/* 4 corner handles */}
       {isInteractive && (
         <>
           <Handle handle="tl" style={{ top: -5, left: -5, cursor: "nwse-resize" }} />
