@@ -1,5 +1,5 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
-import type { FieldPosition } from "../types/certificate";
+import type { FieldPosition, ColumnMappings, FieldType } from "../types/certificate";
 
 const RENDER_WIDTH = 800;
 const BASELINE_PADDING = 10;
@@ -13,8 +13,10 @@ const FONT_MAP: { [key: string]: string } = {
 
 export async function generateCertificate(
   pdfFile: File,
-  nameField: FieldPosition,
-  name: string
+  fieldPositions: FieldPosition[],
+  columnMappings: ColumnMappings,
+  row: { [key: string]: string },
+  staticValues: { [key in FieldType]?: string } = {}
 ): Promise<Blob> {
   const existingPdfBytes = await pdfFile.arrayBuffer();
   const pdfDoc = await PDFDocument.load(existingPdfBytes);
@@ -27,50 +29,52 @@ export async function generateCertificate(
   const scaleX = pdfWidth / RENDER_WIDTH;
   const scaleY = pdfHeight / (RENDER_WIDTH * (pdfHeight / pdfWidth));
 
-  const canvasX = nameField.x - nameField.width / 2;
-  const canvasY = nameField.y - nameField.height / 2;
+  for (const nameField of fieldPositions) {
+    // Use column mapping first, fall back to static value
+    const columnName = columnMappings[nameField.field];
+    const text = columnName
+      ? row[columnName]?.trim()
+      : staticValues[nameField.field]?.trim();
 
-  const boxLeft = canvasX * scaleX;
-  const boxWidth = nameField.width * scaleX;
+    if (!text) continue;
 
-  // In pdf-lib, Y=0 is bottom of page. 
-  // Box bottom in PDF units:
-  const boxBottom = pdfHeight - (canvasY + nameField.height) * scaleY;
+    const canvasX = nameField.x - nameField.width / 2;
+    const canvasY = nameField.y - nameField.height / 2;
 
-  const fontKey = FONT_MAP[nameField.fontFamily] ?? StandardFonts.HelveticaBold;
-  const font = await pdfDoc.embedFont(fontKey);
+    const boxLeft = canvasX * scaleX;
+    const boxWidth = nameField.width * scaleX;
+    const boxBottom = pdfHeight - (canvasY + nameField.height) * scaleY;
 
-  // Scale font size from canvas to PDF units
-  let finalFontSize = nameField.fontSize * scaleY;
-  const minFontSize = nameField.minFontSize * scaleY;
+    const fontKey = FONT_MAP[nameField.fontFamily] ?? StandardFonts.HelveticaBold;
+    const font = await pdfDoc.embedFont(fontKey);
 
-  while (finalFontSize >= minFontSize) {
-    const textWidth = font.widthOfTextAtSize(name, finalFontSize);
-    if (textWidth <= boxWidth) break;
-    finalFontSize--;
+    let finalFontSize = nameField.fontSize * scaleY;
+    const minFontSize = nameField.minFontSize * scaleY;
+
+    while (finalFontSize >= minFontSize) {
+      const textWidth = font.widthOfTextAtSize(text, finalFontSize);
+      if (textWidth <= boxWidth) break;
+      finalFontSize--;
+    }
+
+    const textWidth = font.widthOfTextAtSize(text, finalFontSize);
+    const textY = boxBottom + BASELINE_PADDING * scaleY;
+
+    let textX = boxLeft + BASELINE_PADDING * scaleX;
+    if (nameField.align === "center") {
+      textX = boxLeft + (boxWidth - textWidth) / 2;
+    } else if (nameField.align === "right") {
+      textX = boxLeft + boxWidth - textWidth - BASELINE_PADDING * scaleX;
+    }
+
+    page.drawText(text, {
+      x: textX,
+      y: textY,
+      size: finalFontSize,
+      font,
+      color: rgb(0, 0, 0),
+    });
   }
-
-  const textWidth = font.widthOfTextAtSize(name, finalFontSize);
-
-  // Match canvas: text baseline sits BASELINE_PADDING above box bottom
-  // pdf-lib draws from baseline, so textY = boxBottom + BASELINE_PADDING scaled
-  const textY = boxBottom + BASELINE_PADDING * scaleY;
-
-  // Horizontal alignment — same logic as canvas
-  let textX = boxLeft + BASELINE_PADDING * scaleX;
-  if (nameField.align === "center") {
-    textX = boxLeft + (boxWidth - textWidth) / 2;
-  } else if (nameField.align === "right") {
-    textX = boxLeft + boxWidth - textWidth - BASELINE_PADDING * scaleX;
-  }
-
-  page.drawText(name, {
-    x: textX,
-    y: textY,
-    size: finalFontSize,
-    font,
-    color: rgb(0, 0, 0),
-  });
 
   const savedBytes = await pdfDoc.save();
   const plainBuffer = savedBytes.buffer.slice(

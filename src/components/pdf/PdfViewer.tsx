@@ -1,10 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
+import type { FieldPosition, FieldType } from "../../types/certificate";
 
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-import type { FieldPosition } from "../../types/certificate";
 import FieldBox from "./FieldBox";
 
 // Move worker setup outside component — only runs once
@@ -36,10 +36,10 @@ interface DrawState {
 
 interface PdfViewerProps {
   file: File;
-  selectedField: string;
+  selectedField: FieldType;  // changed from string
   fieldPositions: FieldPosition[];
   onFieldChange: (position: FieldPosition) => void;
-  onFieldDelete: () => void;
+  onFieldDelete: (field: FieldType) => void;  // changed
 }
 
 export default function PdfViewer({
@@ -53,7 +53,7 @@ export default function PdfViewer({
   const [drawState, setDrawState] = useState<DrawState | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const hasExistingBox = fieldPositions.length > 0;
+  const hasExistingBox = fieldPositions.some(p => p.field === selectedField);
   const fileUrl = getFileUrl(file);
 
   const getRelativePos = useCallback((e: MouseEvent) => {
@@ -205,7 +205,7 @@ export default function PdfViewer({
             key={pos.field}
             position={pos}
             onUpdate={onFieldChange}
-            onDelete={onFieldDelete}
+            onDelete={() => onFieldDelete(pos.field)}
           />
         ))}
 

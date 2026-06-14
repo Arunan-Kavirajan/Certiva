@@ -1,6 +1,10 @@
 import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
-import type { FieldPosition, SheetRow } from "../types/certificate";
+import type { FieldPosition, SheetRow, ColumnMappings, FieldType } from "../types/certificate";
+
+export type StaticValues = {
+  [key in FieldType]?: string;
+};
 
 interface CertificateContextType {
   pdfFile: File | null;
@@ -15,8 +19,11 @@ interface CertificateContextType {
   sheetRows: SheetRow[];
   setSheetRows: (rows: SheetRow[]) => void;
 
-  nameColumn: string;
-  setNameColumn: (col: string) => void;
+  columnMappings: ColumnMappings;
+  setColumnMappings: (mappings: ColumnMappings) => void;
+
+  staticValues: StaticValues;
+  setStaticValues: (values: StaticValues) => void;
 
   zipBlob: Blob | null;
   setZipBlob: (blob: Blob | null) => void;
@@ -29,7 +36,8 @@ export function CertificateProvider({ children }: { children: ReactNode }) {
   const [sheetFile, setSheetFile] = useState<File | null>(null);
   const [fieldPositions, setFieldPositions] = useState<FieldPosition[]>([]);
   const [sheetRows, setSheetRows] = useState<SheetRow[]>([]);
-  const [nameColumn, setNameColumn] = useState<string>("");
+  const [columnMappings, setColumnMappings] = useState<ColumnMappings>({});
+  const [staticValues, setStaticValues] = useState<StaticValues>({});
   const [zipBlob, setZipBlob] = useState<Blob | null>(null);
 
   return (
@@ -43,8 +51,10 @@ export function CertificateProvider({ children }: { children: ReactNode }) {
         setFieldPositions,
         sheetRows,
         setSheetRows,
-        nameColumn,
-        setNameColumn,
+        columnMappings,
+        setColumnMappings,
+        staticValues,
+        setStaticValues,
         zipBlob,
         setZipBlob,
       }}

@@ -6,24 +6,29 @@ import Navbar from "../components/shared/Navbar";
 
 export default function GeneratingPage() {
   const navigate = useNavigate();
-  const { pdfFile, fieldPositions, sheetRows, nameColumn, setZipBlob } = useCertificate();
+  const { pdfFile, fieldPositions, sheetRows, columnMappings, staticValues, setZipBlob } = useCertificate();
+
+
   const [current, setCurrent] = useState(0);
   const total = sheetRows.length;
 
   useEffect(() => {
-    if (!pdfFile || fieldPositions.length === 0 || !nameColumn || sheetRows.length === 0) {
+    if (!pdfFile || fieldPositions.length === 0 || sheetRows.length === 0) {
       navigate("/editor");
       return;
     }
 
     generateAllCertificates(
-      pdfFile,
-      fieldPositions[0],
-      sheetRows,
-      nameColumn,
-      (done) => setCurrent(done)
-    ).then((zip) => {
+  pdfFile,
+  fieldPositions,
+  sheetRows,
+  columnMappings,
+  staticValues,
+  (done) => setCurrent(done)
+).then(({ zip, result }) => {
       setZipBlob(zip);
+      // Store result in sessionStorage so download page can read it
+      sessionStorage.setItem("generationResult", JSON.stringify(result));
       navigate("/download");
     });
   }, [navigate]);

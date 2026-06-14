@@ -4,7 +4,8 @@ import * as XLSX from "xlsx";
 import { Document, Page } from "react-pdf";
 import PdfViewer from "../components/pdf/PdfViewer";
 import { useCertificate } from "../context/CertificateContext";
-import type { FieldPosition } from "../types/certificate";
+import type { FieldPosition, FieldType } from "../types/certificate";
+import { FIELD_TYPES, FIELD_COLORS } from "../types/certificate";
 import { generateCertificate } from "../utils/generateCertificate";
 import Navbar from "../components/shared/Navbar";
 
@@ -24,15 +25,18 @@ export default function TemplateEditorPage() {
     setFieldPositions,
     sheetRows,
     setSheetRows,
-    nameColumn,
-    setNameColumn,
+    columnMappings,
+    setColumnMappings,
+    staticValues,
+    setStaticValues,
   } = useCertificate();
 
   const [columns, setColumns] = useState<string[]>([]);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedField, setSelectedField] = useState<FieldType>("Name");
+  const [activeFormattingField, setActiveFormattingField] = useState<FieldType>("Name");
 
   useEffect(() => {
     if (!pdfFile) navigate("/upload");
@@ -51,31 +55,34 @@ export default function TemplateEditorPage() {
       const headers = Object.keys(rows[0]);
       setColumns(headers);
       setSheetRows(rows);
-      if (!nameColumn && headers.length > 0) setNameColumn(headers[0]);
+      if (!columnMappings["Name"] && headers.length > 0) {
+        setColumnMappings({ ...columnMappings, Name: headers[0] });
+      }
     };
     reader.readAsArrayBuffer(sheetFile);
   }, [sheetFile]);
 
-  const handleFieldChange = (updated: FieldPosition) => setFieldPositions([updated]);
+  const handleFieldChange = (updated: FieldPosition) => {
+    const others = fieldPositions.filter((p) => p.field !== updated.field);
+    setFieldPositions([...others, updated]);
+  };
+
+  const handleFieldDelete = (field: FieldType) => {
+    setFieldPositions(fieldPositions.filter((p) => p.field !== field));
+  };
 
   const updateFormatting = (patch: Partial<FieldPosition>) => {
-    if (fieldPositions.length === 0) return;
-    setFieldPositions([{ ...fieldPositions[0], ...patch }]);
+    const existing = fieldPositions.find((p) => p.field === activeFormattingField);
+    if (!existing) return;
+    handleFieldChange({ ...existing, ...patch });
   };
 
   const handlePreview = async () => {
-    if (!pdfFile || fieldPositions.length === 0 || !nameColumn || sheetRows.length === 0) return;
+    if (!pdfFile || fieldPositions.length === 0 || sheetRows.length === 0) return;
     setIsGenerating(true);
     try {
-      const blob = await generateCertificate(
-        pdfFile,
-        fieldPositions[0],
-        sheetRows[0][nameColumn] ?? "Unknown"
-      );
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      const url = URL.createObjectURL(blob);
+      const blob = await generateCertificate(pdfFile, fieldPositions, columnMappings, sheetRows[0], staticValues);
       setPreviewBlob(blob);
-      setPreviewUrl(url);
       setIsPreviewMode(true);
     } catch (err) {
       console.error("Preview generation failed:", err);
@@ -84,8 +91,8 @@ export default function TemplateEditorPage() {
     }
   };
 
-  const canPreview = !!(pdfFile && fieldPositions.length > 0 && nameColumn && sheetRows.length > 0);
-  const activeField = fieldPositions[0] ?? null;
+  const canPreview = !!(pdfFile && fieldPositions.length > 0 && sheetRows.length > 0);
+  const activeFieldPos = fieldPositions.find((p) => p.field === activeFormattingField) ?? null;
 
   if (!pdfFile) return null;
 
@@ -101,7 +108,7 @@ export default function TemplateEditorPage() {
 
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
 
-        {/* Left — canvas area, always mounted */}
+        {/* Left — canvas */}
         <div style={{
           flex: 1,
           overflowY: "auto",
@@ -112,7 +119,6 @@ export default function TemplateEditorPage() {
           alignItems: "center",
           position: "relative",
         }}>
-
           {/* Header */}
           <div style={{ marginBottom: 20, alignSelf: "flex-start", display: "flex", alignItems: "center", gap: 16 }}>
             <button
@@ -153,22 +159,18 @@ export default function TemplateEditorPage() {
               </h1>
               <p style={{ fontSize: 12, color: "#9C8670", margin: 0 }}>
                 {isPreviewMode
-                  ? `Showing for: ${sheetRows[0]?.[nameColumn] ?? "—"}`
-                  : fieldPositions.length === 0
-                    ? "Click or drag on the certificate to place the Name field."
-                    : "Drag to move · Corners to resize · × to delete"}
+                  ? `Showing for: ${sheetRows[0]?.[columnMappings["Name"] ?? ""] ?? "—"}`
+                  : fieldPositions.find(p => p.field === selectedField)
+                    ? `${selectedField} placed — pick another field or adjust positioning`
+                    : `Click or drag on the certificate to place the ${selectedField} field`}
               </p>
             </div>
 
-            {/* Back to editor button — only in preview mode */}
             {isPreviewMode && (
               <button
                 onClick={() => setIsPreviewMode(false)}
                 style={{
                   marginLeft: 8,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
                   padding: "7px 14px",
                   backgroundColor: "#FFFFFF",
                   color: "#9C8670",
@@ -184,7 +186,7 @@ export default function TemplateEditorPage() {
             )}
           </div>
 
-          {/* Editor canvas — hidden in preview mode but stays mounted */}
+          {/* Editor canvas */}
           <div style={{
             display: isPreviewMode ? "none" : "inline-block",
             borderRadius: 12,
@@ -197,14 +199,14 @@ export default function TemplateEditorPage() {
           }}>
             <PdfViewer
               file={pdfFile}
-              selectedField="Name"
+              selectedField={selectedField}
               fieldPositions={fieldPositions}
               onFieldChange={handleFieldChange}
-              onFieldDelete={() => setFieldPositions([])}
+              onFieldDelete={handleFieldDelete}
             />
           </div>
 
-          {/* Preview — rendered with react-pdf, same style as editor */}
+          {/* Preview */}
           {isPreviewMode && previewBlob && (
             <div style={{
               display: "inline-block",
@@ -220,23 +222,15 @@ export default function TemplateEditorPage() {
                 file={previewBlob}
                 loading={
                   <div style={{
-                    width: 800,
-                    height: 566,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    width: 800, height: 566,
+                    display: "flex", alignItems: "center", justifyContent: "center",
                     backgroundColor: "#F7F4EE",
                   }}>
                     <p style={{ fontSize: 13, color: "#9C8670" }}>Loading preview...</p>
                   </div>
                 }
               >
-                <Page
-                  pageNumber={1}
-                  width={800}
-                  renderTextLayer={false}
-                  renderAnnotationLayer={false}
-                />
+                <Page pageNumber={1} width={800} renderTextLayer={false} renderAnnotationLayer={false} />
               </Document>
             </div>
           )}
@@ -244,7 +238,7 @@ export default function TemplateEditorPage() {
 
         {/* Right — sidebar */}
         <div style={{
-          width: 280,
+          width: 300,
           backgroundColor: "#FFFFFF",
           borderLeft: "1px solid #DDD5C4",
           display: "flex",
@@ -263,76 +257,216 @@ export default function TemplateEditorPage() {
 
           <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 24, flex: 1 }}>
 
-            {/* Name field status */}
+            {/* Field placement */}
             <div>
               <p style={{
                 fontSize: 12, fontWeight: 600, color: "#9C8670",
-                margin: 0, marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.06em",
+                margin: 0, marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.06em",
               }}>
-                Name Field
+                Fields
               </p>
-              {fieldPositions.length > 0 ? (
-                <div style={{
-                  padding: "10px 14px", backgroundColor: "#E8EDD6",
-                  borderRadius: 10, border: "1px solid #C8D4A0",
-                  display: "flex", alignItems: "center", gap: 8,
-                }}>
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#7C8C4E", flexShrink: 0 }} />
-                  <p style={{ fontSize: 13, color: "#4A6030", fontWeight: 500, margin: 0 }}>Field placed ✓</p>
-                </div>
-              ) : (
-                <div style={{
-                  padding: "10px 14px", backgroundColor: "#F7F4EE",
-                  borderRadius: 10, border: "1.5px dashed #DDD5C4",
-                  display: "flex", alignItems: "center", gap: 8,
-                }}>
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#DDD5C4", flexShrink: 0 }} />
-                  <p style={{ fontSize: 13, color: "#9C8670", margin: 0 }}>Click canvas to place</p>
-                </div>
-              )}
+
+              {/* Field selector tabs */}
+              <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+                {FIELD_TYPES.map((ft) => {
+                  const isSelected = selectedField === ft;
+                  const isPlaced = fieldPositions.some(p => p.field === ft);
+                  const colors = FIELD_COLORS[ft];
+                  return (
+                    <button
+                      key={ft}
+                      onClick={() => {
+                        setSelectedField(ft);
+                        setActiveFormattingField(ft);
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: "7px 4px",
+                        backgroundColor: isSelected ? colors.bg : "#F7F4EE",
+                        color: isSelected ? colors.text : "#9C8670",
+                        border: `1.5px solid ${isSelected ? colors.border : "#DDD5C4"}`,
+                        borderRadius: 8,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        position: "relative",
+                        transition: "all 0.15s ease",
+                      }}
+                    >
+                      {ft}
+                      {isPlaced && (
+                        <span style={{
+                          position: "absolute",
+                          top: -4, right: -4,
+                          width: 8, height: 8,
+                          borderRadius: "50%",
+                          backgroundColor: colors.border,
+                          border: "1.5px solid white",
+                        }} />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Field status list */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {FIELD_TYPES.map((ft) => {
+                  const isPlaced = fieldPositions.some(p => p.field === ft);
+                  const colors = FIELD_COLORS[ft];
+                  return (
+                    <div
+                      key={ft}
+                      style={{
+                        padding: "8px 12px",
+                        backgroundColor: isPlaced ? colors.bg : "#F7F4EE",
+                        borderRadius: 8,
+                        border: `1px solid ${isPlaced ? colors.border : "#DDD5C4"}`,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div style={{
+                          width: 7, height: 7, borderRadius: "50%",
+                          backgroundColor: isPlaced ? colors.border : "#DDD5C4",
+                        }} />
+                        <span style={{
+                          fontSize: 12, fontWeight: 500,
+                          color: isPlaced ? colors.text : "#9C8670",
+                        }}>
+                          {ft}
+                        </span>
+                      </div>
+                      <span style={{ fontSize: 11, color: isPlaced ? colors.text : "#9C8670" }}>
+                        {isPlaced ? "Placed ✓" : "Not placed"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             <div style={{ height: 1, backgroundColor: "#EFE9DA" }} />
 
-            {/* Spreadsheet */}
+            {/* Column mapping */}
             <div>
               <p style={{
                 fontSize: 12, fontWeight: 600, color: "#9C8670",
-                margin: 0, marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.06em",
+                margin: 0, marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.06em",
               }}>
-                Spreadsheet
+                Column Mapping
               </p>
-              {sheetFile ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <label style={{ fontSize: 13, fontWeight: 500, color: "#5C4A2A" }}>Name column</label>
-                  {columns.length > 0 ? (
-                    <select
-                      value={nameColumn}
-                      onChange={(e) => setNameColumn(e.target.value)}
-                      style={{
-                        width: "100%", padding: "10px 12px",
-                        border: "1.5px solid #DDD5C4", borderRadius: 10,
-                        fontSize: 13, color: "#2C1F0E", backgroundColor: "#FFFFFF",
-                        outline: "none", cursor: "pointer",
-                      }}
-                    >
-                      {columns.map((col) => (
-                        <option key={col} value={col}>{col}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <p style={{ fontSize: 13, color: "#9C8670", margin: 0 }}>Parsing...</p>
-                  )}
-                  {nameColumn && sheetRows.length > 0 && (
+
+              {fieldPositions.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                  {FIELD_TYPES.filter(ft => fieldPositions.some(p => p.field === ft)).map((ft) => {
+                    const isUsingColumn = !!columnMappings[ft];
+                    const colors = FIELD_COLORS[ft];
+
+                    return (
+                      <div key={ft}>
+                        <div style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          marginBottom: 6,
+                        }}>
+                          <label style={{ fontSize: 12, fontWeight: 600, color: colors.text }}>
+                            {ft}
+                          </label>
+                          <div style={{ display: "flex", gap: 4 }}>
+                            <button
+                              onClick={() => {
+                                setColumnMappings({ ...columnMappings, [ft]: columns[0] ?? "" });
+                                const newStatic = { ...staticValues };
+                                delete newStatic[ft];
+                                setStaticValues(newStatic);
+                              }}
+                              style={{
+                                padding: "3px 8px",
+                                backgroundColor: isUsingColumn ? "#E8EDD6" : "transparent",
+                                color: isUsingColumn ? "#5C4A2A" : "#9C8670",
+                                border: `1px solid ${isUsingColumn ? "#C8D4A0" : "#DDD5C4"}`,
+                                borderRadius: 5,
+                                fontSize: 10,
+                                fontWeight: 600,
+                                cursor: "pointer",
+                              }}
+                            >
+                              From sheet
+                            </button>
+                            <button
+                              onClick={() => {
+                                const newMappings = { ...columnMappings };
+                                delete newMappings[ft];
+                                setColumnMappings(newMappings);
+                                setStaticValues({ ...staticValues, [ft]: staticValues[ft] ?? "" });
+                              }}
+                              style={{
+                                padding: "3px 8px",
+                                backgroundColor: !isUsingColumn ? "#E8EDD6" : "transparent",
+                                color: !isUsingColumn ? "#5C4A2A" : "#9C8670",
+                                border: `1px solid ${!isUsingColumn ? "#C8D4A0" : "#DDD5C4"}`,
+                                borderRadius: 5,
+                                fontSize: 10,
+                                fontWeight: 600,
+                                cursor: "pointer",
+                              }}
+                            >
+                              Fixed text
+                            </button>
+                          </div>
+                        </div>
+
+                        {isUsingColumn ? (
+                          columns.length > 0 ? (
+                            <select
+                              value={columnMappings[ft] ?? ""}
+                              onChange={(e) => setColumnMappings({ ...columnMappings, [ft]: e.target.value })}
+                              style={{
+                                width: "100%", padding: "9px 12px",
+                                border: "1.5px solid #DDD5C4", borderRadius: 10,
+                                fontSize: 13, color: "#2C1F0E", backgroundColor: "#FFFFFF",
+                                outline: "none", cursor: "pointer",
+                              }}
+                            >
+                              <option value="">— Select column —</option>
+                              {columns.map((col) => (
+                                <option key={col} value={col}>{col}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <p style={{ fontSize: 12, color: "#9C8670", margin: 0 }}>
+                              No spreadsheet uploaded
+                            </p>
+                          )
+                        ) : (
+                          <input
+                            type="text"
+                            placeholder={`Enter ${ft.toLowerCase()} text...`}
+                            value={staticValues[ft] ?? ""}
+                            onChange={(e) => setStaticValues({ ...staticValues, [ft]: e.target.value })}
+                            style={{
+                              width: "100%", padding: "9px 12px",
+                              border: "1.5px solid #DDD5C4", borderRadius: 10,
+                              fontSize: 13, color: "#2C1F0E", backgroundColor: "#FFFFFF",
+                              outline: "none", boxSizing: "border-box",
+                            }}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {sheetRows.length > 0 && (
                     <div style={{
                       padding: "8px 12px", backgroundColor: "#F7F4EE",
                       borderRadius: 8, border: "1px solid #EFE9DA",
                     }}>
-                      <p style={{ fontSize: 11, color: "#9C8670", margin: 0, marginBottom: 1 }}>
-                        {sheetRows.length} participants
-                      </p>
-                      <p style={{ fontSize: 12, color: "#5C4A2A", fontWeight: 500, margin: 0 }}>
-                        First: {sheetRows[0][nameColumn] ?? "—"}
+                      <p style={{ fontSize: 11, color: "#9C8670", margin: 0 }}>
+                        {sheetRows.length} participants found
                       </p>
                     </div>
                   )}
@@ -342,30 +476,60 @@ export default function TemplateEditorPage() {
                   padding: 12, backgroundColor: "#F7F4EE",
                   borderRadius: 10, border: "1.5px dashed #DDD5C4", textAlign: "center",
                 }}>
-                  <p style={{ fontSize: 13, color: "#9C8670", margin: 0 }}>No spreadsheet uploaded</p>
+                  <p style={{ fontSize: 13, color: "#9C8670", margin: 0 }}>
+                    Place a field on the canvas first
+                  </p>
                 </div>
               )}
             </div>
 
             <div style={{ height: 1, backgroundColor: "#EFE9DA" }} />
 
-            {/* Text Formatting */}
+            {/* Text formatting */}
             <div>
-              <p style={{
-                fontSize: 12, fontWeight: 600, color: "#9C8670",
-                margin: 0, marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.06em",
+              <div style={{
+                display: "flex", alignItems: "center",
+                justifyContent: "space-between", marginBottom: 12,
               }}>
-                Text Formatting
-              </p>
+                <p style={{
+                  fontSize: 12, fontWeight: 600, color: "#9C8670",
+                  margin: 0, textTransform: "uppercase", letterSpacing: "0.06em",
+                }}>
+                  Text Formatting
+                </p>
+                {fieldPositions.length > 1 && (
+                  <div style={{ display: "flex", gap: 4 }}>
+                    {FIELD_TYPES.filter(ft => fieldPositions.some(p => p.field === ft)).map((ft) => {
+                      const colors = FIELD_COLORS[ft];
+                      return (
+                        <button
+                          key={ft}
+                          onClick={() => setActiveFormattingField(ft)}
+                          style={{
+                            padding: "3px 8px",
+                            backgroundColor: activeFormattingField === ft ? colors.bg : "transparent",
+                            color: activeFormattingField === ft ? colors.text : "#9C8670",
+                            border: `1px solid ${activeFormattingField === ft ? colors.border : "#DDD5C4"}`,
+                            borderRadius: 6,
+                            fontSize: 10,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                          }}
+                        >
+                          {ft}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
-              {activeField ? (
+              {activeFieldPos ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-
-                  {/* Font family */}
                   <div>
                     <label style={{ fontSize: 12, color: "#9C8670", display: "block", marginBottom: 6 }}>Font</label>
                     <select
-                      value={activeField.fontFamily}
+                      value={activeFieldPos.fontFamily}
                       onChange={(e) => updateFormatting({ fontFamily: e.target.value as FieldPosition["fontFamily"] })}
                       style={{
                         width: "100%", padding: "9px 12px",
@@ -380,15 +544,12 @@ export default function TemplateEditorPage() {
                     </select>
                   </div>
 
-                  {/* Font size + Min font size */}
                   <div style={{ display: "flex", gap: 10 }}>
                     <div style={{ flex: 1 }}>
                       <label style={{ fontSize: 12, color: "#9C8670", display: "block", marginBottom: 6 }}>Font size</label>
                       <input
-                        type="number"
-                        min={8}
-                        max={72}
-                        value={activeField.fontSize}
+                        type="number" min={8} max={72}
+                        value={activeFieldPos.fontSize}
                         onChange={(e) => updateFormatting({ fontSize: Number(e.target.value) })}
                         style={{
                           width: "100%", padding: "9px 10px",
@@ -401,10 +562,8 @@ export default function TemplateEditorPage() {
                     <div style={{ flex: 1 }}>
                       <label style={{ fontSize: 12, color: "#9C8670", display: "block", marginBottom: 6 }}>Min size</label>
                       <input
-                        type="number"
-                        min={6}
-                        max={activeField.fontSize}
-                        value={activeField.minFontSize}
+                        type="number" min={6} max={activeFieldPos.fontSize}
+                        value={activeFieldPos.minFontSize}
                         onChange={(e) => updateFormatting({ minFontSize: Number(e.target.value) })}
                         style={{
                           width: "100%", padding: "9px 10px",
@@ -416,7 +575,6 @@ export default function TemplateEditorPage() {
                     </div>
                   </div>
 
-                  {/* Alignment */}
                   <div>
                     <label style={{ fontSize: 12, color: "#9C8670", display: "block", marginBottom: 6 }}>Alignment</label>
                     <div style={{ display: "flex", gap: 6 }}>
@@ -425,16 +583,12 @@ export default function TemplateEditorPage() {
                           key={a}
                           onClick={() => updateFormatting({ align: a })}
                           style={{
-                            flex: 1,
-                            padding: "8px 0",
-                            backgroundColor: activeField.align === a ? "#7C8C4E" : "#F7F4EE",
-                            color: activeField.align === a ? "#FFFFFF" : "#9C8670",
-                            border: `1.5px solid ${activeField.align === a ? "#7C8C4E" : "#DDD5C4"}`,
-                            borderRadius: 8,
-                            fontSize: 12,
-                            fontWeight: 500,
-                            cursor: "pointer",
-                            transition: "all 0.15s ease",
+                            flex: 1, padding: "8px 0",
+                            backgroundColor: activeFieldPos.align === a ? "#7C8C4E" : "#F7F4EE",
+                            color: activeFieldPos.align === a ? "#FFFFFF" : "#9C8670",
+                            border: `1.5px solid ${activeFieldPos.align === a ? "#7C8C4E" : "#DDD5C4"}`,
+                            borderRadius: 8, fontSize: 12, fontWeight: 500,
+                            cursor: "pointer", transition: "all 0.15s ease",
                             textTransform: "capitalize",
                           }}
                         >
@@ -443,14 +597,15 @@ export default function TemplateEditorPage() {
                       ))}
                     </div>
                   </div>
-
                 </div>
               ) : (
                 <div style={{
                   padding: 14, backgroundColor: "#F7F4EE",
                   borderRadius: 10, border: "1.5px dashed #DDD5C4", textAlign: "center",
                 }}>
-                  <p style={{ fontSize: 12, color: "#9C8670", margin: 0 }}>Place the Name field first</p>
+                  <p style={{ fontSize: 12, color: "#9C8670", margin: 0 }}>
+                    Place a field to format it
+                  </p>
                 </div>
               )}
             </div>
@@ -472,7 +627,6 @@ export default function TemplateEditorPage() {
                 border: `1.5px solid ${canPreview ? "#DDD5C4" : "#EFE9DA"}`,
                 borderRadius: 10, fontSize: 14, fontWeight: 600,
                 cursor: canPreview && !isGenerating ? "pointer" : "not-allowed",
-                transition: "all 0.2s ease",
               }}
             >
               {isGenerating ? "Generating..." : "Preview"}
@@ -487,7 +641,6 @@ export default function TemplateEditorPage() {
                 color: canPreview ? "#FFFFFF" : "#9C8670",
                 border: "none", borderRadius: 10, fontSize: 14, fontWeight: 600,
                 cursor: canPreview ? "pointer" : "not-allowed",
-                transition: "all 0.2s ease",
               }}
             >
               Generate All →
@@ -495,21 +648,14 @@ export default function TemplateEditorPage() {
 
             {!canPreview && (
               <p style={{ fontSize: 11, color: "#9C8670", margin: 0, textAlign: "center" }}>
-                {!fieldPositions.length
-                  ? "Place the Name field first"
-                  : "Select the Name column above"}
+                Place at least one field and upload a spreadsheet
               </p>
             )}
           </div>
         </div>
       </div>
 
-      {/* Spin animation */}
-      <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
