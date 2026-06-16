@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import type { FieldPosition } from "../../types/certificate";
 
 type ColorSet = {
@@ -9,9 +9,19 @@ type ColorSet = {
 
 const FIELD_COLORS: { [key: string]: ColorSet } = {
   Name: {
-    border: "rgba(124, 140, 78, 0.8)",
+    border: "rgba(124, 140, 78, 0.85)",
     bg: "rgba(124, 140, 78, 0.08)",
-    text: "rgba(124, 140, 78, 0.9)",
+    text: "rgba(124, 140, 78, 0.95)",
+  },
+  Event: {
+    border: "rgba(92, 74, 42, 0.85)",
+    bg: "rgba(92, 74, 42, 0.08)",
+    text: "rgba(92, 74, 42, 0.95)",
+  },
+  Date: {
+    border: "rgba(74, 96, 130, 0.85)",
+    bg: "rgba(74, 96, 130, 0.08)",
+    text: "rgba(74, 96, 130, 0.95)",
   },
 };
 
@@ -26,7 +36,6 @@ const MIN_WIDTH = 80;
 const MIN_HEIGHT = 30;
 const BASELINE_PADDING = 10;
 
-// Map our fontFamily values to CSS-compatible font names
 const FONT_CSS_MAP: { [key: string]: string } = {
   "Helvetica": "Helvetica, Arial, sans-serif",
   "Helvetica-Bold": "Helvetica, Arial, sans-serif",
@@ -60,32 +69,26 @@ export default function FieldBox({
 
   const boxRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isDeleteHovered, setIsDeleteHovered] = useState(false);
 
   const colors: ColorSet = FIELD_COLORS[field] ?? DEFAULT_COLORS;
   const isInteractive = !isDrawPreview;
-
-  // Get the actual first name from the sheet, fall back to "John Doe"
   const previewText = "John Doe";
 
   const cssFont = FONT_CSS_MAP[fontFamily] ?? "Helvetica, Arial, sans-serif";
   const cssFontWeight = FONT_WEIGHT_MAP[fontFamily] ?? "400";
 
-  // Draw text on canvas pinned to the bottom baseline
   const drawCanvas = (w: number, h: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     canvas.width = w;
     canvas.height = h;
-
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-
     ctx.clearRect(0, 0, w, h);
 
     const availableWidth = w - HORIZONTAL_PADDING * 2;
-
-    // Find the fitting font size
     let fitSize = fontSize;
     while (fitSize >= minFontSize) {
       ctx.font = `${cssFontWeight} ${fitSize}px ${cssFont}`;
@@ -97,21 +100,15 @@ export default function FieldBox({
     ctx.fillStyle = colors.text;
     ctx.textBaseline = "alphabetic";
 
-    // Pin text baseline to bottom of canvas minus padding
     const textY = h - BASELINE_PADDING;
-
     const textWidth = ctx.measureText(previewText).width;
     let textX = HORIZONTAL_PADDING;
-    if (align === "center") {
-      textX = (w - textWidth) / 2;
-    } else if (align === "right") {
-      textX = w - HORIZONTAL_PADDING - textWidth;
-    }
+    if (align === "center") textX = (w - textWidth) / 2;
+    else if (align === "right") textX = w - HORIZONTAL_PADDING - textWidth;
 
     ctx.fillText(previewText, textX, textY);
   };
 
-  // Redraw whenever any formatting or size changes
   useEffect(() => {
     drawCanvas(width, height);
   }, [width, height, fontSize, minFontSize, fontFamily, align, previewText]);
@@ -196,7 +193,6 @@ export default function FieldBox({
         boxRef.current.style.height = `${newH}px`;
       }
 
-      // Redraw canvas at new size
       drawCanvas(newW, newH);
     };
 
@@ -229,6 +225,7 @@ export default function FieldBox({
         boxSizing: "border-box",
         pointerEvents: "auto",
         zIndex: 10,
+        boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
         ...style,
       }}
     />
@@ -238,6 +235,8 @@ export default function FieldBox({
     <div
       ref={boxRef}
       onMouseDown={isInteractive ? startMove : undefined}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       style={{
         position: "absolute",
         left: x - width / 2,
@@ -246,69 +245,79 @@ export default function FieldBox({
         height,
         border: `2px dashed ${colors.border}`,
         backgroundColor: colors.bg,
-        borderRadius: 6,
+        borderRadius: 8,
         boxSizing: "border-box",
         pointerEvents: isInteractive ? "auto" : "none",
         overflow: "visible",
         opacity: isDrawPreview ? 0.5 : 1,
         cursor: isInteractive ? "grab" : undefined,
         userSelect: "none",
+        transition: "box-shadow 0.15s ease",
+        boxShadow: isHovered ? `0 0 0 3px ${colors.bg}` : "none",
       }}
     >
       {/* Field label */}
       <span
         style={{
           position: "absolute",
-          top: -20,
+          top: -22,
           left: 0,
           fontSize: 11,
           fontWeight: 600,
           color: colors.text,
           backgroundColor: isDrawPreview ? "transparent" : "white",
-          padding: "0 4px",
-          borderRadius: 3,
-          lineHeight: "16px",
+          padding: "2px 7px",
+          borderRadius: 5,
+          lineHeight: "14px",
           letterSpacing: "0.02em",
           pointerEvents: "none",
           whiteSpace: "nowrap",
+          boxShadow: isDrawPreview ? "none" : "0 1px 3px rgba(0,0,0,0.08)",
         }}
       >
         {field}
       </span>
 
-      {/* Delete button */}
+      {/* Delete button — refined, fades in on hover */}
       {isInteractive && onDelete && (
         <button
           onMouseDown={(e) => e.stopPropagation()}
+          onMouseEnter={() => setIsDeleteHovered(true)}
+          onMouseLeave={() => setIsDeleteHovered(false)}
           onClick={(e) => {
             e.stopPropagation();
             onDelete();
           }}
           style={{
             position: "absolute",
-            top: -28,
-            right: -2,
-            width: 20,
-            height: 20,
+            top: -12,
+            right: -12,
+            width: 22,
+            height: 22,
             borderRadius: "50%",
-            backgroundColor: "#E05A4A",
-            border: "none",
-            color: "white",
-            fontSize: 13,
+            backgroundColor: isDeleteHovered ? "#E05A4A" : "#FFFFFF",
+            border: `1.5px solid ${isDeleteHovered ? "#E05A4A" : "#DDD5C4"}`,
+            color: isDeleteHovered ? "#FFFFFF" : "#9C8670",
             cursor: "pointer",
             pointerEvents: "auto",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 20,
+            opacity: isHovered ? 1 : 0,
+            transform: isHovered ? "scale(1)" : "scale(0.8)",
+            transition: "all 0.15s ease",
+            boxShadow: "0 2px 6px rgba(44,31,14,0.15)",
           }}
           title="Remove field"
         >
-          ×
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+            <path d="M2.5 2.5L9.5 9.5M9.5 2.5L2.5 9.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          </svg>
         </button>
       )}
 
-      {/* Canvas for preview text — pinned exactly to bottom */}
+      {/* Canvas for preview text */}
       <canvas
         ref={canvasRef}
         style={{
@@ -318,7 +327,7 @@ export default function FieldBox({
           width: "100%",
           height: "100%",
           pointerEvents: "none",
-          borderRadius: 6,
+          borderRadius: 8,
         }}
       />
 
