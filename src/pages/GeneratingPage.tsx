@@ -8,7 +8,6 @@ export default function GeneratingPage() {
   const navigate = useNavigate();
   const { pdfFile, fieldPositions, sheetRows, columnMappings, staticValues, setZipBlob } = useCertificate();
 
-
   const [current, setCurrent] = useState(0);
   const total = sheetRows.length;
 
@@ -19,15 +18,14 @@ export default function GeneratingPage() {
     }
 
     generateAllCertificates(
-  pdfFile,
-  fieldPositions,
-  sheetRows,
-  columnMappings,
-  staticValues,
-  (done) => setCurrent(done)
-).then(({ zip, result }) => {
+      pdfFile,
+      fieldPositions,
+      sheetRows,
+      columnMappings,
+      staticValues,
+      (done) => setCurrent(done)
+    ).then(({ zip, result }) => {
       setZipBlob(zip);
-      // Store result in sessionStorage so download page can read it
       sessionStorage.setItem("generationResult", JSON.stringify(result));
       navigate("/download");
     });
@@ -43,15 +41,32 @@ export default function GeneratingPage() {
       flexDirection: "column",
       position: "relative",
       overflow: "hidden",
+      fontFamily: "'Inter', sans-serif",
     }}>
       <Navbar activeStep={2} />
 
-      <svg style={{ position: "absolute", top: 60, left: 0, pointerEvents: "none", opacity: 0.3 }}
-        width="500" height="300" viewBox="0 0 500 300" fill="none">
-        <path d="M-50 150 Q100 50 200 150 Q300 250 400 150 Q500 50 600 150"
-          stroke="#7C8C4E" strokeWidth="1.5" fill="none" />
-        <path d="M-50 180 Q100 80 200 180 Q300 280 400 180 Q500 80 600 180"
-          stroke="#7C8C4E" strokeWidth="1" fill="none" opacity="0.6" />
+      {/* Ambient orbs */}
+      <div style={{
+        position: "absolute", top: -150, left: -150,
+        width: 600, height: 600, borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(124,140,78,0.1) 0%, transparent 70%)",
+        pointerEvents: "none",
+      }} />
+      <div style={{
+        position: "absolute", bottom: -180, right: -150,
+        width: 600, height: 600, borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(92,74,42,0.08) 0%, transparent 70%)",
+        pointerEvents: "none",
+      }} />
+
+      {/* Decorative certificate motif */}
+      <svg style={{ position: "absolute", top: "20%", right: "8%", pointerEvents: "none", opacity: 0.05 }}
+        width="200" height="200" viewBox="0 0 200 200" fill="none">
+        <rect x="10" y="10" width="180" height="180" rx="4" stroke="#2C1F0E" strokeWidth="1" strokeDasharray="6 4" />
+        <circle cx="10" cy="10" r="5" stroke="#2C1F0E" strokeWidth="1" />
+        <circle cx="190" cy="10" r="5" stroke="#2C1F0E" strokeWidth="1" />
+        <circle cx="10" cy="190" r="5" stroke="#2C1F0E" strokeWidth="1" />
+        <circle cx="190" cy="190" r="5" stroke="#2C1F0E" strokeWidth="1" />
       </svg>
 
       <div style={{
@@ -64,58 +79,70 @@ export default function GeneratingPage() {
         zIndex: 1,
       }}>
         <div style={{
-          backgroundColor: "#FFFFFF",
-          borderRadius: 24,
-          padding: 48,
+          backgroundColor: "rgba(255,255,255,0.9)",
+          backdropFilter: "blur(20px)",
+          borderRadius: 28,
+          padding: 52,
           width: "100%",
-          maxWidth: 440,
-          boxShadow: "0 4px 24px rgba(44, 31, 14, 0.08)",
-          border: "1px solid #EFE9DA",
+          maxWidth: 460,
+          boxShadow: "0 12px 48px rgba(44, 31, 14, 0.12), 0 2px 8px rgba(44, 31, 14, 0.04)",
+          border: "1px solid rgba(221,213,196,0.8)",
           textAlign: "center",
         }}>
+          {/* Spinning icon ring */}
           <div style={{
-            width: 64,
-            height: 64,
+            width: 72, height: 72,
             borderRadius: "50%",
-            backgroundColor: "#E8EDD6",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            margin: "0 auto 24px",
+            background: "linear-gradient(135deg, #E8EDD6, #D8E4B0)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            margin: "0 auto 28px",
+            position: "relative",
+            boxShadow: "0 4px 16px rgba(124,140,78,0.15)",
           }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <div style={{
+              position: "absolute",
+              inset: -4,
+              borderRadius: "50%",
+              border: "2px solid transparent",
+              borderTopColor: "#7C8C4E",
+              animation: "spin 1.2s linear infinite",
+            }} />
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
                 stroke="#7C8C4E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <polyline points="14 2 14 8 20 8"
-                stroke="#7C8C4E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <line x1="16" y1="13" x2="8" y2="13"
-                stroke="#7C8C4E" strokeWidth="2" strokeLinecap="round" />
-              <line x1="16" y1="17" x2="8" y2="17"
-                stroke="#7C8C4E" strokeWidth="2" strokeLinecap="round" />
+              <polyline points="14 2 14 8 20 8" stroke="#7C8C4E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <line x1="16" y1="13" x2="8" y2="13" stroke="#7C8C4E" strokeWidth="2" strokeLinecap="round" />
+              <line x1="16" y1="17" x2="8" y2="17" stroke="#7C8C4E" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </div>
 
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#2C1F0E", margin: 0, marginBottom: 8 }}>
+          <h1 style={{
+            fontSize: 24, fontWeight: 700, color: "#2C1F0E",
+            margin: 0, marginBottom: 8,
+            fontFamily: "'Playfair Display', serif",
+          }}>
             Generating Certificates
           </h1>
-          <p style={{ fontSize: 14, color: "#9C8670", margin: 0, marginBottom: 32 }}>
-            Please wait while we process all {total} certificates.
+          <p style={{ fontSize: 14, color: "#9C8670", margin: 0, marginBottom: 36 }}>
+            Crafting {total} personalized certificate{total !== 1 ? "s" : ""}, one by one.
           </p>
 
+          {/* Progress bar */}
           <div style={{
-            width: "100%",
-            height: 8,
+            width: "100%", height: 10,
             backgroundColor: "#EFE9DA",
             borderRadius: 99,
             overflow: "hidden",
-            marginBottom: 12,
+            marginBottom: 14,
+            position: "relative",
           }}>
             <div style={{
               height: "100%",
               width: `${percent}%`,
-              backgroundColor: "#7C8C4E",
+              background: "linear-gradient(90deg, #7C8C4E, #9CB05E)",
               borderRadius: 99,
               transition: "width 0.3s ease",
+              boxShadow: "0 0 10px rgba(124,140,78,0.4)",
             }} />
           </div>
 
@@ -123,12 +150,17 @@ export default function GeneratingPage() {
             <p style={{ fontSize: 13, color: "#9C8670", margin: 0 }}>
               {current} of {total} done
             </p>
-            <p style={{ fontSize: 13, fontWeight: 600, color: "#7C8C4E", margin: 0 }}>
+            <p style={{
+              fontSize: 14, fontWeight: 700, color: "#7C8C4E", margin: 0,
+              fontFamily: "'Playfair Display', serif",
+            }}>
               {percent}%
             </p>
           </div>
         </div>
       </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
