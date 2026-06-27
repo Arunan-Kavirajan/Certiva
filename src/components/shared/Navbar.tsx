@@ -20,7 +20,10 @@ export default function Navbar({ activeStep }: NavbarProps) {
       position: "relative",
     }}>
       {/* Logo */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div
+        onClick={() => window.location.href = "/"}
+        style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}
+      >
         <div style={{
           width: 30, height: 30,
           borderRadius: 8,
