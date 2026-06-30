@@ -2,7 +2,7 @@
 
 **Certificates, without the chaos.**
 
-Built by [Arunan Kavirajan](https://github.com/Arunan-Kavirajan), a browser based certificate automation platform built to eliminate the manual, repetitive process of generating certificates for events, workshops, competitions, and training programs.
+A browser based certificate automation platform built to eliminate the manual, repetitive process of generating certificates for events, workshops, competitions, and training programs.
 
 Certiva is a web based certificate automation platform that eliminates the manual, repetitive process of generating certificates for events, workshops, competitions, and training programs. Upload a certificate template and a participant spreadsheet, visually place text fields, and generate hundreds of personalized certificates in seconds, entirely in the browser.
 
