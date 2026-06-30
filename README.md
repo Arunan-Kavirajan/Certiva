@@ -2,27 +2,27 @@
 
 **Certificates, without the chaos.**
 
-Built by [Arunan Kavirajan](https://github.com/Arunan-Kavirajan) — a browser-based 
+Built by [Arunan Kavirajan](https://github.com/Arunan-Kavirajan) - a browser-based 
 certificate automation platform built to eliminate the manual, repetitive process 
 of generating certificates for events, workshops, competitions, and training programs.
 
-Certiva is a web-based certificate automation platform that eliminates the manual, repetitive process of generating certificates for events, workshops, competitions, and training programs. Upload a certificate template and a participant spreadsheet, visually place text fields, and generate hundreds of personalized certificates in seconds — entirely in the browser.
+Certiva is a web-based certificate automation platform that eliminates the manual, repetitive process of generating certificates for events, workshops, competitions, and training programs. Upload a certificate template and a participant spreadsheet, visually place text fields, and generate hundreds of personalized certificates in seconds - entirely in the browser.
 
 ---
 
 ## Features
 
-- **PDF template upload** — drag and drop your certificate design as a PDF
-- **Spreadsheet support** — upload participant data as XLSX or CSV (including raw Google Forms exports)
-- **Visual field editor** — draw, drag, and resize text boxes directly on the certificate to mark where Name, Event, and Date should appear
-- **Flexible data mapping** — map each field to a spreadsheet column, or enter fixed text that stays the same across every certificate
-- **Per-field text formatting** — font family, font size, minimum font size (auto-shrink), and text alignment, configurable independently for each field
-- **Live certificate preview** — see exactly how the first certificate will look before generating the full batch, rendered directly in-browser
-- **Bulk generation** — generates a personalized PDF for every row in the spreadsheet
-- **Error handling** — if any individual certificate fails to generate, the rest continue uninterrupted and a report is shown listing what failed and why
-- **One-click ZIP export** — download every generated certificate bundled into a single ZIP file
-- **Desktop-first experience** — the editor is intentionally desktop-only; visiting on a mobile or narrow viewport shows a friendly notice instead of a broken layout
-- **Fully client-side** — no files are ever uploaded to a server; all PDF parsing, rendering, and generation happens locally in the browser
+- **PDF template upload** - drag and drop your certificate design as a PDF
+- **Spreadsheet support** - upload participant data as XLSX or CSV (including raw Google Forms exports)
+- **Visual field editor** - draw, drag, and resize text boxes directly on the certificate to mark where Name, Event, and Date should appear
+- **Flexible data mapping** - map each field to a spreadsheet column, or enter fixed text that stays the same across every certificate
+- **Per-field text formatting** - font family, font size, minimum font size (auto-shrink), and text alignment, configurable independently for each field
+- **Live certificate preview** - see exactly how the first certificate will look before generating the full batch, rendered directly in-browser
+- **Bulk generation** - generates a personalized PDF for every row in the spreadsheet
+- **Error handling** - if any individual certificate fails to generate, the rest continue uninterrupted and a report is shown listing what failed and why
+- **One-click ZIP export** - download every generated certificate bundled into a single ZIP file
+- **Desktop-first experience** - the editor is intentionally desktop-only; visiting on a mobile or narrow viewport shows a friendly notice instead of a broken layout
+- **Fully client-side** - no files are ever uploaded to a server; all PDF parsing, rendering, and generation happens locally in the browser
 
 ---
 
