@@ -2,6 +2,10 @@
 
 **Certificates, without the chaos.**
 
+Built by [Arunan Kavirajan](https://github.com/Arunan-Kavirajan) — a browser-based 
+certificate automation platform built to eliminate the manual, repetitive process 
+of generating certificates for events, workshops, competitions, and training programs.
+
 Certiva is a web-based certificate automation platform that eliminates the manual, repetitive process of generating certificates for events, workshops, competitions, and training programs. Upload a certificate template and a participant spreadsheet, visually place text fields, and generate hundreds of personalized certificates in seconds — entirely in the browser.
 
 ---
@@ -143,7 +147,7 @@ npm run preview
 Certiva uses a warm, editorial color palette inspired by stationery and certificate design:
 
 | Token          | Color                 | Usage                                     |
-| -------------- | --------------------- | ----------------------------------------- |
+| -------------- | --------------------- | ------------------------------------------ |
 | Background     | `#F7F4EE`             | Page background (warm cream)              |
 | Surface        | `#FFFFFF`             | Cards and panels                          |
 | Subtle surface | `#EFE9DA`             | Section backgrounds, dividers             |
@@ -162,3 +166,11 @@ Typography pairs **Playfair Display** (serif, for headings and emphasis) with **
 ## Browser Support
 
 Certiva's editor is designed for desktop and laptop screens (768px width and above). Visiting on a mobile device or narrow window shows a dedicated notice asking the user to switch to a larger screen, since the visual field editor relies on precise mouse-based drag and resize interactions.
+
+---
+
+## Author
+
+**Arunan Kavirajan** — IT undergraduate at SRM Institute of Science and Technology (SRMIST), Chennai, building software with AI integration.
+
+[GitHub](https://github.com/Arunan-Kavirajan) · [LinkedIn](https://linkedin.com/in/arunan-kavirajan)
