@@ -140,37 +140,31 @@ export default function LandingPage() {
       fontFamily: "'Inter', sans-serif",
     }}>
 
-      {/* Particle canvas */}
       <canvas ref={canvasRef} style={{
         position: "absolute", top: 0, left: 0,
         width: "100%", height: "100%",
         pointerEvents: "none", zIndex: 0,
       }} />
 
-      {/* Ambient glow orbs */}
       <div style={{
         position: "absolute", top: -200, left: -200,
-        width: 700, height: 700,
-        borderRadius: "50%",
+        width: 700, height: 700, borderRadius: "50%",
         background: "radial-gradient(circle, rgba(124,140,78,0.12) 0%, transparent 70%)",
         pointerEvents: "none", zIndex: 0,
       }} />
       <div style={{
         position: "absolute", bottom: -150, right: -150,
-        width: 600, height: 600,
-        borderRadius: "50%",
+        width: 600, height: 600, borderRadius: "50%",
         background: "radial-gradient(circle, rgba(92,74,42,0.1) 0%, transparent 70%)",
         pointerEvents: "none", zIndex: 0,
       }} />
       <div style={{
         position: "absolute", top: "40%", right: "10%",
-        width: 400, height: 400,
-        borderRadius: "50%",
+        width: 400, height: 400, borderRadius: "50%",
         background: "radial-gradient(circle, rgba(124,140,78,0.07) 0%, transparent 70%)",
         pointerEvents: "none", zIndex: 0,
       }} />
 
-      {/* Decorative certificate border motif — top left */}
       <svg style={{ position: "absolute", top: 64, left: 0, pointerEvents: "none", zIndex: 0, opacity: 0.06 }}
         width="320" height="320" viewBox="0 0 320 320" fill="none">
         <rect x="20" y="20" width="280" height="280" rx="4" stroke="#2C1F0E" strokeWidth="1" strokeDasharray="6 4" />
@@ -183,7 +177,6 @@ export default function LandingPage() {
         <path d="M20 160 L32 155 L44 160 L32 165 Z" fill="#2C1F0E" opacity="0.5" />
       </svg>
 
-      {/* Decorative certificate border motif — bottom right */}
       <svg style={{ position: "absolute", bottom: 0, right: 0, pointerEvents: "none", zIndex: 0, opacity: 0.06 }}
         width="320" height="320" viewBox="0 0 320 320" fill="none">
         <rect x="20" y="20" width="280" height="280" rx="4" stroke="#2C1F0E" strokeWidth="1" strokeDasharray="6 4" />
@@ -194,23 +187,17 @@ export default function LandingPage() {
         <circle cx="300" cy="300" r="6" stroke="#2C1F0E" strokeWidth="1" />
       </svg>
 
-      {/* Navbar */}
       <nav style={{
         position: "relative", zIndex: 10,
         backgroundColor: "rgba(247, 244, 238, 0.8)",
         backdropFilter: "blur(16px)",
         borderBottom: "1px solid rgba(221, 213, 196, 0.6)",
-        padding: "0 48px",
-        height: 64,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
+        padding: "0 48px", height: 64,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
-        {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{
-            width: 32, height: 32,
-            borderRadius: 8,
+            width: 32, height: 32, borderRadius: 8,
             backgroundColor: "#7C8C4E",
             display: "flex", alignItems: "center", justifyContent: "center",
             boxShadow: "0 2px 8px rgba(124,140,78,0.3)",
@@ -233,20 +220,14 @@ export default function LandingPage() {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <span style={{ fontSize: 13, color: "#9C8670" }}>
-            Free · No account needed
-          </span>
+          <span style={{ fontSize: 13, color: "#9C8670" }}>Free · No account needed</span>
           <button
             onClick={() => navigate("/upload")}
             style={{
               padding: "9px 22px",
               background: "linear-gradient(135deg, #7C8C4E 0%, #6A7A3E 100%)",
-              color: "#FFFFFF",
-              border: "none",
-              borderRadius: 10,
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: "pointer",
+              color: "#FFFFFF", border: "none", borderRadius: 10,
+              fontSize: 14, fontWeight: 600, cursor: "pointer",
               transition: "all 0.2s ease",
               boxShadow: "0 2px 8px rgba(124,140,78,0.25)",
             }}
@@ -264,29 +245,19 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero */}
       <div style={{
         flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
+        display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
         padding: "80px 40px 40px",
-        position: "relative",
-        zIndex: 1,
-        textAlign: "center",
+        position: "relative", zIndex: 1, textAlign: "center",
       }}>
 
-        {/* Badge */}
         <div style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 6,
+          display: "inline-flex", alignItems: "center", gap: 6,
           backgroundColor: "rgba(232, 237, 214, 0.8)",
           backdropFilter: "blur(8px)",
-          borderRadius: 99,
-          padding: "6px 16px",
-          marginBottom: 32,
+          borderRadius: 99, padding: "6px 16px", marginBottom: 32,
           border: "1px solid #C8D4A0",
         }}>
           <div style={{
@@ -295,69 +266,47 @@ export default function LandingPage() {
             boxShadow: "0 0 6px rgba(124,140,78,0.6)",
           }} />
           <span style={{
-            fontSize: 12, fontWeight: 600,
-            color: "#5C7030", letterSpacing: "0.08em",
-            textTransform: "uppercase",
+            fontSize: 12, fontWeight: 600, color: "#5C7030",
+            letterSpacing: "0.08em", textTransform: "uppercase",
           }}>
             Certificate Automation · Free Forever
           </span>
         </div>
 
-        {/* Headline */}
         <h1 style={{
-          fontSize: 68,
-          fontWeight: 700,
-          color: "#2C1F0E",
-          margin: 0,
-          marginBottom: 12,
-          letterSpacing: "-2px",
-          lineHeight: 1.0,
-          maxWidth: 700,
+          fontSize: 68, fontWeight: 700, color: "#2C1F0E",
+          margin: 0, marginBottom: 12,
+          letterSpacing: "-2px", lineHeight: 1.0, maxWidth: 700,
           fontFamily: "'Playfair Display', serif",
         }}>
           Certificates,
         </h1>
         <h1 style={{
-          fontSize: 68,
-          fontWeight: 700,
-          fontStyle: "italic",
-          color: "#7C8C4E",
-          margin: 0,
-          marginBottom: 28,
-          letterSpacing: "-2px",
-          lineHeight: 1.0,
-          maxWidth: 700,
+          fontSize: 68, fontWeight: 700, fontStyle: "italic",
+          color: "#7C8C4E", margin: 0, marginBottom: 28,
+          letterSpacing: "-2px", lineHeight: 1.0, maxWidth: 700,
           fontFamily: "'Playfair Display', serif",
         }}>
           without the chaos.
         </h1>
 
         <p style={{
-          fontSize: 18,
-          color: "#9C8670",
-          margin: 0,
-          marginBottom: 44,
-          maxWidth: 460,
-          lineHeight: 1.75,
-          fontWeight: 400,
+          fontSize: 18, color: "#9C8670",
+          margin: 0, marginBottom: 44,
+          maxWidth: 460, lineHeight: 1.75, fontWeight: 400,
         }}>
           Upload your template, map your participant list, and generate
           hundreds of personalized certificates in seconds.
         </p>
 
-        {/* CTA */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
           <button
             onClick={() => navigate("/upload")}
             style={{
               padding: "16px 40px",
               background: "linear-gradient(135deg, #7C8C4E 0%, #5C7030 100%)",
-              color: "#FFFFFF",
-              border: "none",
-              borderRadius: 14,
-              fontSize: 16,
-              fontWeight: 600,
-              cursor: "pointer",
+              color: "#FFFFFF", border: "none", borderRadius: 14,
+              fontSize: 16, fontWeight: 600, cursor: "pointer",
               transition: "all 0.25s ease",
               boxShadow: "0 6px 24px rgba(124, 140, 78, 0.35), 0 2px 8px rgba(124, 140, 78, 0.2)",
               letterSpacing: "0.01em",
@@ -384,38 +333,28 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Steps section */}
         <div style={{ marginTop: 96, width: "100%", maxWidth: 860 }}>
 
-          {/* Section label */}
           <div style={{
             display: "flex", alignItems: "center",
             justifyContent: "center", gap: 16, marginBottom: 48,
           }}>
             <div style={{ flex: 1, height: 1, background: "linear-gradient(to right, transparent, #DDD5C4)" }} />
             <span style={{
-              fontSize: 11, fontWeight: 700,
-              color: "#9C8670", letterSpacing: "0.12em",
-              textTransform: "uppercase",
+              fontSize: 11, fontWeight: 700, color: "#9C8670",
+              letterSpacing: "0.12em", textTransform: "uppercase",
             }}>
               How it works
             </span>
             <div style={{ flex: 1, height: 1, background: "linear-gradient(to left, transparent, #DDD5C4)" }} />
           </div>
 
-          {/* Step cards with connecting line */}
           <div style={{ position: "relative", display: "flex", gap: 24, alignItems: "stretch" }}>
 
-            {/* Dashed connecting line */}
             <div style={{
-              position: "absolute",
-              top: 36,
-              left: "16.67%",
-              right: "16.67%",
-              height: 1,
-              borderTop: "2px dashed rgba(124,140,78,0.25)",
-              pointerEvents: "none",
-              zIndex: 0,
+              position: "absolute", top: 36, left: "16.67%", right: "16.67%",
+              height: 1, borderTop: "2px dashed rgba(124,140,78,0.25)",
+              pointerEvents: "none", zIndex: 0,
             }} />
 
             {steps.map((item, i) => (
@@ -424,18 +363,11 @@ export default function LandingPage() {
                 onMouseEnter={() => setHoveredStep(i)}
                 onMouseLeave={() => setHoveredStep(null)}
                 style={{
-                  flex: 1,
-                  position: "relative",
-                  zIndex: 1,
-                  backgroundColor: hoveredStep === i
-                    ? "#FFFFFF"
-                    : "rgba(255,255,255,0.75)",
+                  flex: 1, position: "relative", zIndex: 1,
+                  backgroundColor: hoveredStep === i ? "#FFFFFF" : "rgba(255,255,255,0.75)",
                   backdropFilter: "blur(12px)",
-                  borderRadius: 20,
-                  padding: "28px 24px",
-                  border: hoveredStep === i
-                    ? "1px solid #C8D4A0"
-                    : "1px solid rgba(221,213,196,0.8)",
+                  borderRadius: 20, padding: "28px 24px",
+                  border: hoveredStep === i ? "1px solid #C8D4A0" : "1px solid rgba(221,213,196,0.8)",
                   textAlign: "left",
                   boxShadow: hoveredStep === i
                     ? "0 8px 32px rgba(44, 31, 14, 0.1), 0 2px 8px rgba(124,140,78,0.1)"
@@ -444,58 +376,42 @@ export default function LandingPage() {
                   transform: hoveredStep === i ? "translateY(-4px)" : "translateY(0)",
                 }}
               >
-                {/* Large faded step number */}
                 <div style={{
-                  position: "absolute",
-                  top: 12, right: 16,
-                  fontSize: 56,
-                  fontWeight: 700,
-                  color: "#7C8C4E",
-                  opacity: 0.07,
-                  lineHeight: 1,
-                  pointerEvents: "none",
-                  fontFamily: "'Playfair Display', serif",
-                  userSelect: "none",
+                  position: "absolute", top: 12, right: 16,
+                  fontSize: 56, fontWeight: 700, color: "#7C8C4E",
+                  opacity: 0.07, lineHeight: 1, pointerEvents: "none",
+                  fontFamily: "'Playfair Display', serif", userSelect: "none",
                 }}>
                   {item.num}
                 </div>
 
-                {/* Icon */}
                 <div style={{
-                  width: 48, height: 48,
-                  borderRadius: 14,
+                  width: 48, height: 48, borderRadius: 14,
                   background: "linear-gradient(135deg, #E8EDD6 0%, #D8E4B0 100%)",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  marginBottom: 20,
-                  border: "1px solid #C8D4A0",
+                  marginBottom: 20, border: "1px solid #C8D4A0",
                   boxShadow: "0 2px 8px rgba(124,140,78,0.1)",
                 }}>
                   {item.icon}
                 </div>
 
                 <p style={{
-                  fontSize: 11, fontWeight: 700,
-                  color: "#7C8C4E", letterSpacing: "0.1em",
-                  margin: 0, marginBottom: 8,
+                  fontSize: 11, fontWeight: 700, color: "#7C8C4E",
+                  letterSpacing: "0.1em", margin: 0, marginBottom: 8,
                   textTransform: "uppercase",
                 }}>
                   Step {item.num}
                 </p>
 
                 <h3 style={{
-                  fontSize: 17, fontWeight: 600,
-                  color: "#2C1F0E",
+                  fontSize: 17, fontWeight: 600, color: "#2C1F0E",
                   margin: 0, marginBottom: 10,
-                  fontFamily: "'Playfair Display', serif",
-                  letterSpacing: "-0.2px",
+                  fontFamily: "'Playfair Display', serif", letterSpacing: "-0.2px",
                 }}>
                   {item.title}
                 </h3>
 
-                <p style={{
-                  fontSize: 13, color: "#9C8670",
-                  margin: 0, lineHeight: 1.65,
-                }}>
+                <p style={{ fontSize: 13, color: "#9C8670", margin: 0, lineHeight: 1.65 }}>
                   {item.desc}
                 </p>
               </div>
@@ -504,11 +420,10 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* Footer */}
       <div style={{
         position: "relative", zIndex: 1,
         borderTop: "1px solid rgba(221,213,196,0.6)",
-        padding: "20px 48px",
+        padding: "24px 48px",
         display: "flex", alignItems: "center", justifyContent: "space-between",
         backgroundColor: "rgba(247,244,238,0.7)",
         backdropFilter: "blur(8px)",
@@ -526,13 +441,55 @@ export default function LandingPage() {
             </svg>
           </div>
           <span style={{
-            fontSize: 15, fontWeight: 700,
-            color: "#2C1F0E",
+            fontSize: 15, fontWeight: 700, color: "#2C1F0E",
             fontFamily: "'Playfair Display', serif",
           }}>
             Certiva
           </span>
         </div>
+
+        <div style={{
+          display: "flex", alignItems: "center", gap: 10,
+          padding: "8px 18px",
+          backgroundColor: "rgba(232,237,214,0.5)",
+          borderRadius: 99, border: "1px solid #C8D4A0",
+        }}>
+          <span style={{ fontSize: 12, color: "#9C8670" }}>Made by</span>
+          <span style={{
+            fontSize: 13, fontWeight: 600, color: "#2C1F0E",
+            fontFamily: "'Playfair Display', serif",
+          }}>
+            Arunan Kavirajan
+          </span>
+          <div style={{ width: 1, height: 14, backgroundColor: "#DDD5C4" }} />
+          <a
+            href="https://github.com/Arunan-Kavirajan"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: "flex", alignItems: "center", color: "#7C8C4E", transition: "color 0.2s ease" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#5C7030")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#7C8C4E")}
+            title="GitHub"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
+            </svg>
+          </a>
+          <a
+            href="https://www.linkedin.com/in/arunan-kavirajan"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: "flex", alignItems: "center", color: "#7C8C4E", transition: "color 0.2s ease" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#5C7030")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#7C8C4E")}
+            title="LinkedIn"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+            </svg>
+          </a>
+        </div>
+
         <span style={{ fontSize: 12, color: "#9C8670" }}>
           Certificate automation, done right.
         </span>
